@@ -2,6 +2,7 @@ package com.example.mojiehua93.newsclient;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.ImageView;
@@ -57,5 +58,32 @@ public class ImageLoader {
             }
         }
         return bitmap;
+    }
+
+    private class LoadImageAsyncTask extends AsyncTask<String, Void, Bitmap> {
+
+        private ImageView mImageView;
+        private String mUrl;
+
+        public LoadImageAsyncTask(ImageView imageView, String url) {
+            mImageView = imageView;
+            mUrl = url;
+        }
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+            return getBitmap(strings[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            super.onPostExecute(bitmap);
+            if (mImageView.getTag().equals(mUrl)) {
+                mImageView.setImageBitmap(bitmap);
+            }
+        }
+    }
+
+    public void setImageUseAsyncTask(ImageView imageView, String url) {
+        new LoadImageAsyncTask(imageView, url).execute(url);
     }
 }

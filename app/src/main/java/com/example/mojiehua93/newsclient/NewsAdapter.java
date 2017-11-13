@@ -63,6 +63,7 @@ public class NewsAdapter extends BaseAdapter {
         String url = mList.get(i).newsIconUrl;
         viewHolder.icon.setTag(url);
         new ImageLoader().setImageUseThread(viewHolder.icon, mList.get(i).newsIconUrl);
+//        new ImageLoader().setImageUseAsyncTask(viewHolder.icon, url);
         viewHolder.title.setText(mList.get(i).newsTitle);
         viewHolder.content.setText(mList.get(i).newsContent);
         return view;
