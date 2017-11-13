@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.LruCache;
 import android.widget.ImageView;
 
 import java.io.BufferedInputStream;
@@ -18,8 +19,31 @@ import java.net.URL;
  */
 
 public class ImageLoader {
+    private String mUrl;
     private Bitmap mBitmap;
+    private LruCache<String, Bitmap> mLruCache;
     private Handler mHandler = new Handler();
+
+    public ImageLoader() {
+        int maxMemory = (int) Runtime.getRuntime().maxMemory();
+        int cacheSize = maxMemory / 4;
+        mLruCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getByteCount();
+            }
+        };
+    }
+
+    public void setBitmapToCache(String url, Bitmap bitmap) {
+        if (getBitmapFromCache(url) == null) {
+            mLruCache.put(url, bitmap);
+        }
+    }
+
+    public Bitmap getBitmapFromCache(String url) {
+        return mLruCache.get(url);
+    }
     public void setImageUseThread(final ImageView imageView, final String url) {
         new Thread() {
             @Override
@@ -52,7 +76,9 @@ public class ImageLoader {
             e.printStackTrace();
         } finally {
             try {
-                inputStream.close();
+                if (inputStream != null) {
+                    inputStream.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -71,7 +97,12 @@ public class ImageLoader {
         }
         @Override
         protected Bitmap doInBackground(String... strings) {
-            return getBitmap(strings[0]);
+            String url = strings[0];
+            Bitmap bitmap = getBitmap(url);
+            if (bitmap != null) {
+                setBitmapToCache(url, bitmap);
+            }
+            return bitmap;
         }
 
         @Override
@@ -84,6 +115,11 @@ public class ImageLoader {
     }
 
     public void setImageUseAsyncTask(ImageView imageView, String url) {
-        new LoadImageAsyncTask(imageView, url).execute(url);
+        Bitmap bitmap = getBitmapFromCache(url);
+        if (bitmap == null) {
+            new LoadImageAsyncTask(imageView, url).execute(url);
+        } else {
+            imageView.setImageBitmap(bitmap);
+        }
     }
 }

@@ -24,11 +24,13 @@ public class NewsAdapter extends BaseAdapter {
     private LayoutInflater mInflater;
     private List<NewsBean> mList;
     private Context mContext;
+    private ImageLoader mImageLoader;
 
     public NewsAdapter(Context context, List<NewsBean> list) {
         mContext = context;
         mList = list;
         mInflater = LayoutInflater.from(mContext);
+        mImageLoader = new ImageLoader();
     }
     @Override
     public int getCount() {
@@ -62,8 +64,8 @@ public class NewsAdapter extends BaseAdapter {
 //        setGlideImageView(i, viewHolder.icon);
         String url = mList.get(i).newsIconUrl;
         viewHolder.icon.setTag(url);
-        new ImageLoader().setImageUseThread(viewHolder.icon, mList.get(i).newsIconUrl);
-//        new ImageLoader().setImageUseAsyncTask(viewHolder.icon, url);
+//        mImageLoader.setImageUseThread(viewHolder.icon, mList.get(i).newsIconUrl);
+        mImageLoader.setImageUseAsyncTask(viewHolder.icon, url);
         viewHolder.title.setText(mList.get(i).newsTitle);
         viewHolder.content.setText(mList.get(i).newsContent);
         return view;
